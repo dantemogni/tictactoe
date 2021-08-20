@@ -6,7 +6,7 @@ body {
   ol, ul {
     padding-left: 30px;
   }
-  
+
   .board-row:after {
     clear: both;
     content: "";
@@ -15,17 +15,17 @@ body {
   
   .square {
     background: #fff;
-    border: 1px solid #999;
+    border: 3px solid #999;
     float: left;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
     line-height: 34px;
-    height: 50px;
-    margin-right: -1px;
-    margin-top: -1px;
+    height: 100px;
+    margin-right: -3px;
+    margin-top: -3px;
     padding: 0;
     text-align: center;
-    width: 50px;
+    width: 100px;
   }
   
   .square:focus {
@@ -47,4 +47,11 @@ body {
   .game-controls button{
     padding: 0 10px 0 10px;
     margin: 3px;
+  }
+
+  .general-settings{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
   }
