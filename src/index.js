@@ -82,11 +82,14 @@ function Square(props){
             }]),
             stepNumber: history.length,
             xIsNext: !this.state.xIsNext,
-            maxSteps: this.state.maxSteps+1
+            maxSteps: this.state.stepNumber + 1
         });
     }
 
     jumpTo(step){
+      console.log(step)
+      console.log(this.state.maxSteps)
+
         this.setState({
             stepNumber: step,
             xIsNext: (step % 2) === 0,
@@ -130,6 +133,12 @@ function Square(props){
                 onClick={() => this.jumpTo(this.state.stepNumber + 1)}
               />
             </div>
+          </div>
+          <div> 
+            <input type="radio" readOnly checked name="normal-game-input"></input>
+            <label htmlFor="normal-game-input">Normal TicTacToe</label>
+            <input type="radio" readOnly disabled name="3d-game-input"></input>
+            <label htmlFor="3d-game-input">3D TicTacToe</label>
           </div>
         </div>
       );
