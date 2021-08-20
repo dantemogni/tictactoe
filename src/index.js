@@ -10,6 +10,16 @@ function Square(props){
       );
   }
   
+  function GameButtons(props){
+    return (
+      <button
+        id={props.id} 
+        disabled={props.isDisabled} 
+        onClick={props.onClick}
+      > {props.placeholder} </button>
+    );
+  }
+  
   class Board extends React.Component {
     renderSquare(i) {
       return (
@@ -43,15 +53,16 @@ function Square(props){
     }
   }
   
-  class Game extends React.Component {
+  class App extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             history: [{
                 squares: Array(9).fill(null), //array con los cuadradtios
-            }],
+              }],
             stepNumber: 0,
             xIsNext: true,
+            maxSteps: 0,
         };
     }
 
@@ -70,7 +81,8 @@ function Square(props){
                 squares: squares,
             }]),
             stepNumber: history.length,
-            xIsNext: !this.state.xIsNext
+            xIsNext: !this.state.xIsNext,
+            maxSteps: this.state.maxSteps+1
         });
     }
 
@@ -86,17 +98,6 @@ function Square(props){
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
-        const moves = history.map((step, move) => {
-            const desc = move ?
-                'Go to move #' + move :
-                'Go to game start';
-            return (
-                <li key={move}>
-                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
-                </li>
-            );
-        });
-
         let status;
         if(winner){
             status = 'Winner: ' + winner;
@@ -106,6 +107,7 @@ function Square(props){
 
       return (
         <div className="game">
+          <h1>TicTacToe</h1>
           <div className="game-board">
             <Board 
                 squares={current.squares}
@@ -113,18 +115,29 @@ function Square(props){
             />
           </div>
           <div className="game-info">
-            <div>{status}</div>
-            <ol>{moves}</ol>
+            <div className="status">{status}</div>
+            <div className="game-controls">
+              <GameButtons
+                id="undo-button"
+                isDisabled={this.state.stepNumber === 0}
+                placeholder={'←'}
+                onClick={() => this.jumpTo(this.state.stepNumber - 1)}
+              />
+              <GameButtons
+                id="redo-button"
+                isDisabled={this.state.stepNumber === this.state.maxSteps}
+                placeholder={'→'}
+                onClick={() => this.jumpTo(this.state.stepNumber + 1)}
+              />
+            </div>
           </div>
         </div>
       );
     }
   }
-  
-  // ========================================
-  
+    
   ReactDOM.render(
-    <Game />,
+    <App/>,
     document.getElementById('root')
   );
   
