@@ -2,170 +2,200 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-function Square(props){
-      return (
-        <button className="square" onClick={props.onClick}>
-          {props.value}
-        </button>
-      );
-  }
-  
-  function GameButtons(props){
+function Square(props) {
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  );
+}
+
+function GameButtons(props) {
+  return (
+    <button
+      id={props.id}
+      disabled={props.isDisabled}
+      onClick={props.onClick}
+    > {props.placeholder} </button>
+  );
+}
+
+class Board extends React.Component {
+  renderSquare(i) {
     return (
-      <button
-        id={props.id} 
-        disabled={props.isDisabled} 
-        onClick={props.onClick}
-      > {props.placeholder} </button>
+      <Square
+        value={this.props.squares[i]}
+        onClick={() => this.props.onClick(i)}
+      />
     );
   }
-  
-  class Board extends React.Component {
-    renderSquare(i) {
-      return (
-            <Square 
-                value={this.props.squares[i]}
-                onClick={() => this.props.onClick(i)}
-            />
-        );
+
+  render() {
+    return (
+      <div className="game-board">
+        <div className="board-row">
+          {this.renderSquare(0)}
+          {this.renderSquare(1)}
+          {this.renderSquare(2)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(3)}
+          {this.renderSquare(4)}
+          {this.renderSquare(5)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(6)}
+          {this.renderSquare(7)}
+          {this.renderSquare(8)}
+        </div>
+      </div>
+    );
+  }
+}
+
+class NormalGame extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      history: [{
+        squares: Array(9).fill(null), //array con los cuadradtios
+      }],
+      stepNumber: 0,
+      xIsNext: true,
+      maxSteps: 0,
+    };
+
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick(i) {
+    const history = this.state.history.slice(0, this.state.stepNumber + 1); //copia el array history
+    const current = history[history.length - 1];
+    const squares = current.squares.slice();
+
+    if (calculateWinner(squares) || squares[i]) return;
+
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+    this.setState((state) => ({
+      history: history.concat([{
+        squares: squares,
+      }]),
+      stepNumber: history.length,
+      xIsNext: !state.xIsNext,
+      maxSteps: state.stepNumber + 1
+    }));
+
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step % 2) === 0,
+    });
+  }
+
+  render() {
+    const history = this.state.history;
+    const current = history[this.state.stepNumber];
+    const winner = calculateWinner(current.squares);
+
+    let status;
+    if (winner) {
+      status = 'Winner: ' + winner;
+    } else {
+      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
     }
-  
-    render() {
-      return (
+
+    return (
+      <div className="game">
+        <h1>TicTacToe</h1>
+        <Board
+          squares={current.squares}
+          onClick={this.handleClick}
+        />
+        <div className="game-info">
+          <div className="status">{status}</div>
+          <div className="game-controls">
+            <GameButtons
+              id="undo-button"
+              isDisabled={this.state.stepNumber === 0}
+              placeholder={'←'}
+              onClick={() => this.jumpTo(this.state.stepNumber - 1)}
+            />
+            <GameButtons
+              id="redo-button"
+              isDisabled={this.state.stepNumber === this.state.maxSteps}
+              placeholder={'→'}
+              onClick={() => this.jumpTo(this.state.stepNumber + 1)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+class Game extends React.Component {
+  constructor(props){
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {value: 'normal'};
+  }
+
+  handleChange(event){
+    this.setState({value: event.target.value});
+  }
+
+  render(){
+    let game;
+    this.state.value === 'normal' 
+      ? game = <NormalGame />
+      : game = <h1>Nothing to see here.</h1>
+
+    return (
+      <section className="main">
         <div>
-          <div className="board-row">
-            {this.renderSquare(0)}
-            {this.renderSquare(1)}
-            {this.renderSquare(2)}
-          </div>
-          <div className="board-row">
-            {this.renderSquare(3)}
-            {this.renderSquare(4)}
-            {this.renderSquare(5)}
-          </div>
-          <div className="board-row">
-            {this.renderSquare(6)}
-            {this.renderSquare(7)}
-            {this.renderSquare(8)}
-          </div>
+          {game}
         </div>
-      );
-    }
+        <form className="general-settings">
+          <input type="radio" onChange={this.handleChange} defaultChecked name="selector-game" value="normal"></input>
+          <label htmlFor="normal">Normal TicTacToe</label>
+          <input type="radio" onChange={this.handleChange} name="selector-game" value="3d"></input>
+          <label htmlFor="3d">3D TicTacToe</label>
+        </form>
+      </section>
+    );  
   }
-  
-  class App extends React.Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            history: [{
-                squares: Array(9).fill(null), //array con los cuadradtios
-              }],
-            stepNumber: 0,
-            xIsNext: true,
-            maxSteps: 0,
-        };
-    }
+}
 
-    handleClick(i){
-        const history = this.state.history.slice(0, this.state.stepNumber + 1); //copia el array history
-        const current = history[history.length - 1];
-        const squares = current.squares.slice();
-
-        if(calculateWinner(squares) || squares[i]){
-            return;
-        }
-
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        this.setState({
-            history: history.concat([{
-                squares: squares,
-            }]),
-            stepNumber: history.length,
-            xIsNext: !this.state.xIsNext,
-            maxSteps: this.state.stepNumber + 1
-        });
-    }
-
-    jumpTo(step){
-      console.log(step)
-      console.log(this.state.maxSteps)
-
-        this.setState({
-            stepNumber: step,
-            xIsNext: (step % 2) === 0,
-        });
-    }
-
-    render() {
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-        const winner = calculateWinner(current.squares);
-
-        let status;
-        if(winner){
-            status = 'Winner: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }
-
-      return (
-        <div className="game">
-          <h1>TicTacToe</h1>
-          <div className="game-board">
-            <Board 
-                squares={current.squares}
-                onClick={(i) => this.handleClick(i)}
-            />
-          </div>
-          <div className="game-info">
-            <div className="status">{status}</div>
-            <div className="game-controls">
-              <GameButtons
-                id="undo-button"
-                isDisabled={this.state.stepNumber === 0}
-                placeholder={'←'}
-                onClick={() => this.jumpTo(this.state.stepNumber - 1)}
-              />
-              <GameButtons
-                id="redo-button"
-                isDisabled={this.state.stepNumber === this.state.maxSteps}
-                placeholder={'→'}
-                onClick={() => this.jumpTo(this.state.stepNumber + 1)}
-              />
-            </div>
-          </div>
-          <div> 
-            <input type="radio" readOnly checked name="normal-game-input"></input>
-            <label htmlFor="normal-game-input">Normal TicTacToe</label>
-            <input type="radio" readOnly disabled name="3d-game-input"></input>
-            <label htmlFor="3d-game-input">3D TicTacToe</label>
-          </div>
-        </div>
-      );
-    }
-  }
-    
-  ReactDOM.render(
-    <App/>,
-    document.getElementById('root')
+function App(){
+  return(
+      <Game />
   );
-  
-  function calculateWinner(squares) {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
-      }
+}
+
+ReactDOM.render(
+  <App />,
+  document.getElementById('root')
+);
+
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
     }
-    return null;
   }
+  return null;
+}
