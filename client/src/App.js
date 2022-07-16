@@ -1,6 +1,12 @@
 import React from 'react';
 import NormalMode from './normal-mode/NormalMode.js'
 import './App.css'
+const { io } = require("socket.io-client");
+
+const socket = io();
+socket.on("connect", () => {
+  console.log(socket.connected); // true
+});
 
 class Game extends React.Component {
   constructor(props){
