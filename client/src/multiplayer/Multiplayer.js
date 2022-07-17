@@ -1,5 +1,11 @@
 import React from 'react';
-import './NormalMode.css'
+import './Multiplayer.css'
+const { io } = require("socket.io-client");
+
+const socket = io();
+socket.on("connect", () => {
+  console.log(socket.connected); // true
+});
 
 function Square(props) {
     return (
@@ -52,7 +58,7 @@ function Square(props) {
     }
   }
   
-  class NormalMode extends React.Component {
+  class Multiplayer extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
@@ -62,7 +68,9 @@ function Square(props) {
         stepNumber: 0,
         xIsNext: true,
         maxSteps: 0,
+        multiplayerCode: generateCode(7).toUpperCase()
       };
+      socket.emit("code", this.state.multiplayerCode)
       this.handleClick = this.handleClick.bind(this);
     }
   
@@ -92,6 +100,11 @@ function Square(props) {
         xIsNext: (step % 2) === 0,
       });
     }
+
+    handleMultiplayer(e){
+      e.preventDefault();
+      alert("Hola")
+    }
   
     render() {
       const history = this.state.history;
@@ -108,6 +121,19 @@ function Square(props) {
       return (
         <div className="game">
           <h1>TicTacToe</h1>
+          <h3>Multiplayer Mode</h3>
+          <div className='multiplayer-info'>
+            <div className='my-code'>
+              <span>My Code:</span><br></br>
+              <strong>{this.state.multiplayerCode}</strong>
+            </div>
+            <div className='thirdparty-code'>
+              <span>Join a session:</span><br></br>
+              <form>
+              <input type={'text'} placeholder={'Insert code'}></input>
+              </form>
+            </div>
+          </div>
           <Board
             squares={current.squares}
             onClick={this.handleClick}
@@ -134,6 +160,17 @@ function Square(props) {
     }
   }
 
+  function generateCode(length){
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+}
+
   function calculateWinner(squares) {
     const lines = [
       [0, 1, 2],
@@ -154,4 +191,4 @@ function Square(props) {
     return null;
   }
 
-  export default NormalMode;
+  export default Multiplayer;
