@@ -15,14 +15,17 @@ Full-stack personal project made for learning about websockets and a little bit 
 ```bash
 make install
 ```
+### Go live
 #### Start the server
-Will start listening at port `2000`
 ```bash
 make start-server
 ```
+_Will start listening at port `2000`_
 
 #### Start client
-Will start frontend app in port `3000`
+In another terminal...
+
 ```bash
 make start-client
 ```
+_Will start frontend app in port `3000`_
