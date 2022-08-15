@@ -18,6 +18,13 @@
     text-align: center;
     width: 100px;
   }
+
+  .square:disabled {
+    border: 3px solid #e0e0e0;
+    color: rgb(189, 189, 189);
+    background-image: linear-gradient(45deg, #ffffff 40%, #e0e0e0 40%, #e0e0e0 50%, #ffffff 50%, #ffffff 90%, #e0e0e0 90%, #e0e0e0 100%);
+    background-size: 14.14px 14.14px;
+  }
   
   .square:focus {
     outline: none;
@@ -45,4 +52,23 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+  }
+
+  .matchedBanner-error {
+    color: red;
+  }
+
+  .matchedBanner-ok {
+    color: green;
+  }
+
+  .thirdPartyStuff {
+    padding: 10px;
+  }
+  .my-code {
+    padding-bottom: 5px;
+  }
+
+  .multiplayer-info {
+    margin-bottom: 20px;
   }
