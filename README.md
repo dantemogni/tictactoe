@@ -4,6 +4,9 @@ Full-stack personal project made for learning about websockets and a little bit 
 <div align="center">
 <img src="./assets/tictactoe.gif">
 </div>
+<br>
+
+_NOTE: this project is buggy af, and for now I won't fix it. This was made only for learning the basics of WebSockets and a little bit of React, nothing more. :)_
 
 ### Overview
 #### Server
