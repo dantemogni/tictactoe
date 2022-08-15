@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on("jump to", (data) => {
-    io.sockets.sockets.get(guessSocketId).emit("jump to", data);
+    io.sockets.sockets.get(socket.guessSocketId).emit("jump to", data);
   });
 
   socket.on("disconnect", (data) => {

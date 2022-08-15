@@ -1,6 +1,10 @@
 # 🎮 React TicTacToe multiplayer real-time
 Full-stack personal project made for learning about websockets and a little bit of React 🙂
 
+<div align="center">
+<img src="./assets/tictactoe.gif">
+</div>
+
 ### Overview
 #### Server
 - Express
