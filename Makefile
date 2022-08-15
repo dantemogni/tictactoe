@@ -4,5 +4,5 @@ install:
 serve:
 	cd server && yarn start
 
-client:
+start-client:
 	cd client && yarn start

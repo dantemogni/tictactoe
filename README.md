@@ -26,6 +26,6 @@ _Will start listening at port `2000`_
 In another terminal...
 
 ```bash
-make client
+make start-client
 ```
 _Will start frontend app in port `3000`_
