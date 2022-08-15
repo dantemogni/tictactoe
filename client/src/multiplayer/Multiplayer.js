@@ -3,13 +3,10 @@ import './Multiplayer.css'
 const { io } = require("socket.io-client");
 
 const socket = io();
-socket.on("connect", () => {
-  console.log(socket.connected); // true
-});
 
 function Square(props) {
     return (
-      <button className="square" onClick={props.onClick}>
+      <button disabled={props.isDisabled} className="square" onClick={props.onClick}>
         {props.value}
       </button>
     );
@@ -29,6 +26,7 @@ function Square(props) {
     renderSquare(i) {
       return (
         <Square
+          isDisabled={this.props.isDisabled}
           value={this.props.squares[i]}
           onClick={() => this.props.onClick(i)}
         />
@@ -68,13 +66,22 @@ function Square(props) {
         stepNumber: 0,
         xIsNext: true,
         maxSteps: 0,
-        multiplayerCode: generateCode(7).toUpperCase()
+        multiplayerCode: generateCode(7).toUpperCase(),
+        socketId: socket.id,
+        events: {}
       };
       socket.emit("code", this.state.multiplayerCode)
       this.handleClick = this.handleClick.bind(this);
+      this.handleMultiplaterInputChange = this.handleMultiplaterInputChange.bind(this);
+      this.handleMultiplayerSubmit = this.handleMultiplayerSubmit.bind(this);
+      this.ThirdPartyStuff = this.ThirdPartyStuff.bind(this);
+      this.CodeMatchBanner = this.CodeMatchBanner.bind(this);
     }
+    
   
     handleClick(i) {
+      console.log(this.state)
+
       const history = this.state.history.slice(0, this.state.stepNumber + 1); //copia el array history
       const current = history[history.length - 1];
       const squares = current.squares.slice();
@@ -89,9 +96,22 @@ function Square(props) {
         }]),
         stepNumber: history.length,
         xIsNext: !state.xIsNext,
-        maxSteps: state.stepNumber + 1
+        maxSteps: state.stepNumber + 1,
+        myTurn: !state.myTurn,
       }));
-  
+
+      socket.emit("game", {
+        history: history.concat([{
+          squares: squares,
+        }]),
+        stepNumber: history.length,
+        xIsNext: !this.state.xIsNext,
+        maxSteps: this.state.stepNumber + 1,
+        guessSocketId: this.state.guessSocketId,
+        meSocketId: socket.id,
+        myTurn: !this.state.myTurn,
+      })
+
     }
   
     jumpTo(step) {
@@ -99,18 +119,128 @@ function Square(props) {
         stepNumber: step,
         xIsNext: (step % 2) === 0,
       });
+      socket.emit("jump to", {
+        stepNumber: step,
+        xIsNext: (step % 2) === 0,
+      })
     }
 
-    handleMultiplayer(e){
-      e.preventDefault();
-      alert("Hola")
+    handleMultiplaterInputChange(e) { 
+      this.setState({solicitedGame: e.target.value});
+      this.setState({errorMatch: null})
+      this.setState({matchRequested: false})
     }
-  
+
+    handleMultiplayerSubmit(e) {
+      e.preventDefault();
+      this.setState({matchRequested: true})
+      socket.emit("multiplayerRequest", {'solicitedGame': this.state.solicitedGame, 'socketId': socket.id})
+    }
+
+
+    componentDidMount(){
+      socket.on("connect", () => {
+        console.log("Conectado"); // true
+      });
+      
+      socket.on("match", (data) => {
+        this.setState({matched: true})
+        this.setState({thirdMultiplayerCode: data.third})
+        this.setState({guessSocketId: data.thirdSocketId})
+        this.setState({myTurn: data.myTurn})
+        console.log("match found " + data.third);
+      });
+      
+      socket.on("no match", (data) => {
+        this.setState({matched: false})
+        console.log("no match found " + data);
+      });
+      
+      socket.on("error", (data) => {
+        this.setState({errorMatch: data})
+        this.setState({matched: false})
+        console.log(data);
+      });
+
+      socket.on("user disconnected", (data) => {
+        this.setState({events: {
+          user_disconnected: data
+        }})
+      });
+
+      // handles game changes
+      socket.on("game", (data) => {
+        this.setState(data)
+      });
+
+      socket.on("jump to", (data) => {
+        this.setState(data)
+      });
+    }
+
+    componentDidUpdate(){
+      console.log(this.state)
+    }
+
+    ThirdPartyStuff(){
+      if(this.state.events.user_disconnected){
+        return (
+          <div className="thirdPartyStuff">
+            <span className='matchedBanner-error'>User {this.state.events.user_disconnected} has disconnected</span>
+          </div>
+        )
+      }
+
+      if(this.state.matched){
+        return (
+          <div className="thirdPartyStuff">
+            <span className='matchedBanner-ok'>Connected with {this.state.thirdMultiplayerCode} !</span>
+          </div>
+        )
+      }
+      return (
+        <div className='multiplayer-info'>
+          <div className='my-code'>
+              <span>My Code:</span><br></br>
+              <strong>{this.state.multiplayerCode}</strong>
+          </div>
+          <div className='thirdparty-code'>
+              <span>Join a session:</span><br></br>
+              <form onSubmit={this.handleMultiplayerSubmit}>
+              <input type={'text'} placeholder={'Insert code'} onChange={this.handleMultiplaterInputChange}></input>
+              </form>
+              <this.CodeMatchBanner></this.CodeMatchBanner>
+          </div>
+        </div>
+      )
+    }
+
+    CodeMatchBanner() {
+      let text = 'No Match Found'
+      let customClass = 'error'
+
+      if(!this.state.matchRequested){
+        return null
+      }
+
+      if(this.state.matched){
+        text = 'Match Found!'
+        customClass = 'ok'
+      }
+
+      if(this.state.errorMatch){
+        text = this.state.errorMatch
+      }
+      return (
+        <span className={'matchedBanner-'+customClass}>{text}</span>
+      )
+    }
+
     render() {
       const history = this.state.history;
       const current = history[this.state.stepNumber];
       const winner = calculateWinner(current.squares);
-  
+
       let status;
       if (winner) {
         status = 'Winner: ' + winner;
@@ -122,19 +252,9 @@ function Square(props) {
         <div className="game">
           <h1>TicTacToe</h1>
           <h3>Multiplayer Mode</h3>
-          <div className='multiplayer-info'>
-            <div className='my-code'>
-              <span>My Code:</span><br></br>
-              <strong>{this.state.multiplayerCode}</strong>
-            </div>
-            <div className='thirdparty-code'>
-              <span>Join a session:</span><br></br>
-              <form>
-              <input type={'text'} placeholder={'Insert code'}></input>
-              </form>
-            </div>
-          </div>
+          <this.ThirdPartyStuff></this.ThirdPartyStuff>
           <Board
+            isDisabled={!this.state.matched || this.state.myTurn || this.state.events.user_disconnected || winner}
             squares={current.squares}
             onClick={this.handleClick}
           />
@@ -143,13 +263,13 @@ function Square(props) {
             <div className="game-controls">
               <GameButtons
                 id="undo-button"
-                isDisabled={this.state.stepNumber === 0}
+                isDisabled={this.state.stepNumber === 0  || this.state.myTurn || winner}
                 placeholder={'←'}
                 onClick={() => this.jumpTo(this.state.stepNumber - 1)}
               />
               <GameButtons
                 id="redo-button"
-                isDisabled={this.state.stepNumber === this.state.maxSteps}
+                isDisabled={this.state.stepNumber === this.state.maxSteps  || this.state.myTurn || winner}
                 placeholder={'→'}
                 onClick={() => this.jumpTo(this.state.stepNumber + 1)}
               />
