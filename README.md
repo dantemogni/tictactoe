@@ -18,7 +18,7 @@ make install
 ### Go live
 #### Start the server
 ```bash
-make start-server
+make serve
 ```
 _Will start listening at port `2000`_
 
@@ -26,6 +26,6 @@ _Will start listening at port `2000`_
 In another terminal...
 
 ```bash
-make start-client
+make client
 ```
 _Will start frontend app in port `3000`_

@@ -1,8 +1,8 @@
 install:
 	cd server && npm install && cd ../client && npm install
 
-start-server:
+serve:
 	cd server && yarn start
 
-start-client:
+client:
 	cd client && yarn start
